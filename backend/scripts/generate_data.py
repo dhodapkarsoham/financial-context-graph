@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from pathlib import Path
 
 from app.config import settings
@@ -18,9 +19,10 @@ async def apply_schema():
     schema_path = Path(__file__).parent.parent.parent / "cypher" / "schema.cypher"
     if schema_path.exists():
         schema = schema_path.read_text()
-        for statement in schema.split(";"):
+        schema_no_comments = re.sub(r"//[^\n]*", "", schema)
+        for statement in schema_no_comments.split(";"):
             stmt = statement.strip()
-            if stmt and not stmt.startswith("//"):
+            if stmt:
                 try:
                     await execute_cypher(stmt)
                     print(f"  Applied: {stmt[:60]}...")
